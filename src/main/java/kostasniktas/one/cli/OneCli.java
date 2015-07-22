@@ -1,5 +1,7 @@
 package kostasniktas.one.cli;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +16,9 @@ import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vm.VirtualMachinePool;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 public class OneCli {
 
@@ -39,6 +44,7 @@ public class OneCli {
         }
         
         String searchName = null;
+        String views = "name,ip";
         
         Options options = new Options();
         
@@ -55,6 +61,10 @@ public class OneCli {
             CommandLine commandLine = parser.parse(options, args);
             if (commandLine.hasOption("search-name")) {
                 searchName = commandLine.getOptionValue("search-name");
+            }
+            
+            if (commandLine.hasOption("view")) {
+                views = commandLine.getOptionValue("view");
             }
 
         } catch (ParseException exp) {
@@ -78,7 +88,22 @@ public class OneCli {
                 VirtualMachine vm = (VirtualMachine) pool.item(i);
                 if (vm.getName().equals(searchName)) {
                     OneResponse monitor = vm.monitoring();
-                    System.err.println(vm.getName() + "\t" + getIPFromXML(monitor.getMessage()));
+                    List<String> items = Lists.newArrayList();
+                    String[] itemsToShow = views.split(",");
+                    for (String item : itemsToShow) {
+                        if (item.equals("name")) {
+                            items.add(vm.getName());
+                        } else if (item.equals("ip")) {
+                            items.add(getIPFromXML(monitor.getMessage()));
+                        } else if (item.equals("id")) {
+                            items.add(vm.getId());
+                        } else {
+                            System.err.println("Unkown view item: " + item);
+                            System.exit(1);
+                            //TODO: Usage
+                        }
+                    }
+                    System.out.println(Joiner.on("\t").join(items));
                 }
             }
         } catch (Exception e) {
