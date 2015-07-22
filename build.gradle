@@ -1,0 +1,19 @@
+
+apply plugin: "java"
+apply plugin: "eclipse"
+apply plugin: "application"
+
+dependencies {
+  compile fileTree(dir:"lib", include:"*.jar")
+}
+
+mainClassName = "kostasniktas.one.cli.OneCli"
+
+jar {
+  manifest {
+    attributes(
+      "Main-Class" : "${project.mainClassName}"
+    )
+  }
+}
+
