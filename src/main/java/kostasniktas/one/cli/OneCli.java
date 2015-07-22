@@ -25,9 +25,15 @@ public class OneCli {
     }
     
     public static void main (String... args) {
+        if (System.getenv("ONE_AUTH") == null || System.getenv("ONE_XMLRPC") == null) {
+            //TODO: usage
+            System.err.println("ONE_AUTH must be a file location and ONE_XMLRPC must be the URL");
+            System.exit(1);
+        }
+        
         Client oneClient;
         try {
-            oneClient = new Client("user:pass","daserver/RPC2");
+            oneClient = new Client();
             
             VirtualMachinePool pool = new VirtualMachinePool(oneClient,-2);
 
