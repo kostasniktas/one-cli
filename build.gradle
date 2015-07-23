@@ -1,11 +1,33 @@
+repositories {
+  mavenCentral()
+}
+
+buildscript {
+  repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+      name "Palantir Bintray"
+      url "http://dl.bintray.com/palantir/releases"
+    }
+  }
+  dependencies {
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.2"
+    classpath "com.palantir:gradle-flexversion:0.7.0"
+  }
+}
 
 apply plugin: "java"
 apply plugin: "eclipse"
 apply plugin: "application"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "gradle-flexversion"
 
-repositories {
-  mavenCentral()
+flexversion {
+  useTags = true
 }
+
+version flexVersion()
 
 dependencies {
   compile fileTree(dir:"lib", include:"*.jar")
