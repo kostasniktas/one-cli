@@ -1,6 +1,7 @@
 package kostasniktas.one.cli;
 
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
@@ -36,6 +38,34 @@ public class OneCli {
         return null;
     }
     
+    private static CommandLine parseArguments (String... args) throws ParseException {
+        Options options = new Options();
+        
+        OptionGroup optionGroupSearch = new OptionGroup();
+        optionGroupSearch.addOption(new Option(null, "search-name", true, "Search for ONE nodes by name"));
+        optionGroupSearch.setRequired(true);
+        options.addOptionGroup(optionGroupSearch);
+        
+        Option optionView = new Option("v", "view", true, "The information to display for information found");
+        options.addOption(optionView);
+
+        Option optionHelp = new Option(null, "help", false, "Print help information");
+        options.addOption(optionHelp);
+
+
+        CommandLineParser parser = new DefaultParser();
+        
+        CommandLine commandLine = parser.parse(options, args);
+
+        if (commandLine.hasOption("help")) {
+            HelpFormatter helpFormatter = new HelpFormatter();
+            helpFormatter.printHelp("one-cli", options, true);
+        }
+
+        System.err.println(optionGroupSearch.getSelected());
+        return commandLine;
+    }
+
     public static void main (String... args) {
         if (System.getenv("ONE_AUTH") == null || System.getenv("ONE_XMLRPC") == null) {
             //TODO: usage
@@ -46,31 +76,25 @@ public class OneCli {
         String searchName = null;
         String views = "name,ip";
         
-        Options options = new Options();
-        
-        OptionGroup optionGroupSearch = new OptionGroup();
-        optionGroupSearch.addOption(new Option(null, "search-name", true, "Search for ONE nodes by name"));
-        optionGroupSearch.setRequired(true);
-        options.addOptionGroup(optionGroupSearch);
-        
-        Option optionView = new Option("v", "view", true, "The information to display for information found");
-        options.addOption(optionView);
-        
-        CommandLineParser parser = new DefaultParser();
-        try {
-            CommandLine commandLine = parser.parse(options, args);
-            if (commandLine.hasOption("search-name")) {
-                searchName = commandLine.getOptionValue("search-name");
-            }
-            
-            if (commandLine.hasOption("view")) {
-                views = commandLine.getOptionValue("view");
-            }
 
+        CommandLine commandLine = null;
+        try {
+            commandLine = parseArguments(args);
         } catch (ParseException exp) {
             System.err.println("Parsing failed. Reason: " + exp.getMessage());
             System.exit(1);
         }
+
+
+
+        if (commandLine.hasOption("search-name")) {
+            searchName = commandLine.getOptionValue("search-name");
+        }
+        
+        if (commandLine.hasOption("view")) {
+            views = commandLine.getOptionValue("view");
+        }
+
         
         Client oneClient;
         try {
