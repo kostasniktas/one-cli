@@ -41,18 +41,19 @@ public class OneCli {
     private static CommandLine parseArguments (String... args) throws ParseException {
         Options options = new Options();
         
+        //TODO: When we actually search for more things, it would probably require a refactor for checking
+        //       what to search on.
         OptionGroup optionGroupSearch = new OptionGroup();
         optionGroupSearch.addOption(new Option(null, "search-name", true, "Search for ONE nodes by name"));
         optionGroupSearch.setRequired(true);
         options.addOptionGroup(optionGroupSearch);
         
-        Option optionView = new Option("v", "view", true, "The information to display for information found");
+        Option optionView = new Option("v", "view", true, "The information to display for information found"); //TODO: List of info
         optionView.setValueSeparator(',');
         options.addOption(optionView);
 
         Option optionHelp = new Option(null, "help", false, "Print help information");
         options.addOption(optionHelp);
-
 
         CommandLineParser parser = new DefaultParser();
         
@@ -63,7 +64,6 @@ public class OneCli {
             helpFormatter.printHelp("one-cli", options, true);
         }
 
-        System.err.println(optionGroupSearch.getSelected());
         return commandLine;
     }
 
@@ -113,8 +113,11 @@ public class OneCli {
             
             for (int i = 0; i < pool.getLength(); i++) {
                 VirtualMachine vm = (VirtualMachine) pool.item(i);
-                if (vm.getName().equals(searchName)) {
+
+                if (vm.getName().startsWith(searchName)) {
+
                     OneResponse monitor = vm.monitoring();
+
                     List<String> items = Lists.newArrayList();
                     for (String item : views) {
                         if (item.equals("name")) {
