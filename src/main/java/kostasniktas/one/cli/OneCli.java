@@ -1,7 +1,5 @@
 package kostasniktas.one.cli;
 
-import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,52 +28,46 @@ public class OneCli {
         int in = xml.indexOf("<IP>");
         int in2 = xml.indexOf("</IP>");
         String ipxml = xml.substring(in, in2);
-        
+
         Matcher m = PATTERN_IP.matcher(ipxml);
         if (m.matches()) {
             return m.group(1);
         }
         return null;
     }
-    
+
     private static CommandLine parseArguments (String... args) throws ParseException {
         Options options = new Options();
-        
-        //TODO: When we actually search for more things, it would probably require a refactor for checking
-        //       what to search on.
-        OptionGroup optionGroupSearch = new OptionGroup();
-        optionGroupSearch.addOption(new Option(null, "search-name", true, "Search for ONE nodes by name"));
-        optionGroupSearch.setRequired(true);
-        options.addOptionGroup(optionGroupSearch);
-        
-        Option optionView = new Option("v", "view", true, "The information to display for information found"); //TODO: List of info
-        options.addOption(optionView);
 
         Option optionHelp = new Option(null, "help", false, "Print help information");
         options.addOption(optionHelp);
 
+        //TODO: When we actually search for more things, it would probably require a refactor for checking
+        //       what to search on.
+        OptionGroup optionGroupSearch = new OptionGroup();
+        optionGroupSearch.addOption(new Option(null, "search-name", true, "Search for ONE nodes by name"));
+        options.addOptionGroup(optionGroupSearch);
+
+        Option optionView = new Option("v", "view", true, "The information to display for information found"); //TODO: List of info
+        options.addOption(optionView);
+
         CommandLineParser parser = new DefaultParser();
-        
+
         CommandLine commandLine = parser.parse(options, args);
 
         if (commandLine.hasOption("help")) {
             HelpFormatter helpFormatter = new HelpFormatter();
             helpFormatter.printHelp("one-cli", options, true);
+            System.exit(0);
         }
 
         return commandLine;
     }
 
     public static void main (String... args) {
-        if (System.getenv("ONE_AUTH") == null || System.getenv("ONE_XMLRPC") == null) {
-            //TODO: usage
-            System.err.println("ONE_AUTH must be a file location and ONE_XMLRPC must be the URL");
-            System.exit(1);
-        }
-        
-        String searchName = null;
+        String searchName = "NOT_A_SELECTABLE_NODE_I_HOPE";
         String[] views = { "name", "ip" };
-        
+
 
         CommandLine commandLine = null;
         try {
@@ -85,20 +77,24 @@ public class OneCli {
             System.exit(1);
         }
 
+        if (System.getenv("ONE_AUTH") == null || System.getenv("ONE_XMLRPC") == null) {
+            //TODO: usage
+            System.err.println("Env var ONE_AUTH must be a file location and ONE_XMLRPC must be the RPC URL");
+            System.exit(1);
+        }
 
         if (commandLine.hasOption("search-name")) {
             searchName = commandLine.getOptionValue("search-name");
         }
-        
+
         if (commandLine.hasOption("view")) {
             views = commandLine.getOptionValue("view").split(",");
         }
 
-        
         Client oneClient;
         try {
             oneClient = new Client();
-            
+
             VirtualMachinePool pool = new VirtualMachinePool(oneClient,-2);
 
             OneResponse info = pool.info();
@@ -106,7 +102,7 @@ public class OneCli {
                 System.err.println(info.getErrorMessage());
                 System.exit(1);
             }
-            
+
             for (int i = 0; i < pool.getLength(); i++) {
                 VirtualMachine vm = (VirtualMachine) pool.item(i);
 
