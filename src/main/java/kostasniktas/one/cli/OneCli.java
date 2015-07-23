@@ -49,7 +49,6 @@ public class OneCli {
         options.addOptionGroup(optionGroupSearch);
         
         Option optionView = new Option("v", "view", true, "The information to display for information found"); //TODO: List of info
-        optionView.setValueSeparator(',');
         options.addOption(optionView);
 
         Option optionHelp = new Option(null, "help", false, "Print help information");
@@ -75,7 +74,7 @@ public class OneCli {
         }
         
         String searchName = null;
-        List<String> views = Lists.newArrayList("name","ip");
+        String[] views = { "name", "ip" };
         
 
         CommandLine commandLine = null;
@@ -92,10 +91,7 @@ public class OneCli {
         }
         
         if (commandLine.hasOption("view")) {
-            Object o = commandLine.getOptionObject('v');
-            if (o instanceof Option) {
-                views = ((Option)o).getValuesList();
-            }
+            views = commandLine.getOptionValue("view").split(",");
         }
 
         
