@@ -47,3 +47,25 @@ jar {
     )
   }
 }
+
+println shadowJar.archivePath
+
+task executableJar << {
+  file("${buildDir}/libs").mkdirs()
+  def execu = file("${buildDir}/libs/${project.name}.run").newDataOutputStream()
+  def jarBin = file(shadowJar.archivePath).newDataInputStream()
+  execu << '''#!/bin/sh
+MYSELF=$(which "$0" 2> /dev/null)
+[ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"
+JAVA_CMD=java
+if test -n "$JAVA_HOME"; then
+  JAVA_CMD="$JAVA_HOME/bin/java"
+fi
+exec "$JAVA_CMD" -jar $MYSELF "$@"
+'''
+  execu << jarBin
+  jarBin.close()
+  execu.close()
+  ant.chmod(file:"${buildDir}/libs/${project.name}.run", perm:"+x")
+}
+executableJar.dependsOn shadowJar
